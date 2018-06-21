@@ -2,6 +2,7 @@
 
 namespace Optix\Draftable;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
 trait Draftable
@@ -24,5 +25,19 @@ trait Draftable
         $query->withDrafts()
               ->where('published_at', '>', Carbon::now())
               ->orWhereNull('published_at');
+    }
+
+    public function publish()
+    {
+        $this->update([
+            'published_at' => Carbon::now()
+        ]);
+    }
+
+    public function draft()
+    {
+        $this->update([
+            'published_at' => null
+        ]);
     }
 }
