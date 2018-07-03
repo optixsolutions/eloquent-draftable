@@ -29,15 +29,18 @@ trait Draftable
 
     public function publish()
     {
-        $this->update([
-            'published_at' => Carbon::now()
-        ]);
+        $this->schedule(Carbon::now());
+    }
+
+    public function schedule(Carbon $time)
+    {
+        $this->published_at = $time;
+        $this->save();
     }
 
     public function draft()
     {
-        $this->update([
-            'published_at' => null
-        ]);
+        $this->published_at = null;
+        $this->save();
     }
 }
