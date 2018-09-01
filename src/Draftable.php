@@ -27,6 +27,11 @@ trait Draftable
               ->orWhereNull('published_at');
     }
 
+    public function isPublished()
+    {
+        return ! is_null($this->published_at) && $this->published_at <= now();
+    }
+
     public function publish()
     {
         $this->schedule(Carbon::now());
@@ -34,13 +39,17 @@ trait Draftable
 
     public function schedule(Carbon $time)
     {
-        $this->published_at = $time;
-        $this->save();
+        $this->setPublishedAt($time);
     }
 
     public function draft()
     {
-        $this->published_at = null;
+        $this->setPublishedAt(null);
+    }
+
+    protected function setPublishedAt($publishedAt)
+    {
+        $this->published_at = $publishedAt;
         $this->save();
     }
 }
