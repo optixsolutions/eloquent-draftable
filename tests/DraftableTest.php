@@ -11,7 +11,7 @@ class DraftableTest extends TestCase
     {
         $model = TestModel::create(['title' => 'Test']);
 
-        $this->assertFalse($model->isPublished());
+        $this->assertTrue($model->isDraft());
     }
     
     /** @test */
@@ -35,7 +35,7 @@ class DraftableTest extends TestCase
         $model = TestModel::create(['title' => 'Scheduled']);
         $model->schedule($date = Carbon::now()->addWeek());
 
-        $this->assertFalse($model->isPublished());
+        $this->assertTrue($model->isDraft());
 
         Carbon::setTestNow($date);
 
@@ -52,7 +52,7 @@ class DraftableTest extends TestCase
 
         $publishedModel->draft();
 
-        $this->assertFalse($publishedModel->isPublished());
+        $this->assertTrue($publishedModel->isDraft());
     }
     
     /** @test */

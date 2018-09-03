@@ -11,14 +11,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->app['db']->connection()
-            ->getSchemaBuilder()
-            ->create('test_models', function (Blueprint $table) {
-                $table->increments('id');
-                $table->string('title');
-                $table->timestamp('published_at')->nullable();
-                $table->timestamps();
-            });
+        $this->setUpDatabase($this->app);
     }
 
     protected function getEnvironmentSetUp($app)
@@ -29,5 +22,17 @@ class TestCase extends BaseTestCase
             'database' => ':memory:',
             'prefix' => ''
         ]);
+    }
+
+    protected function setUpDatabase($app)
+    {
+        $app['db']->connection()
+            ->getSchemaBuilder()
+            ->create('test_models', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('title');
+                $table->timestamp('published_at')->nullable();
+                $table->timestamps();
+            });
     }
 }
