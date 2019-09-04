@@ -7,7 +7,7 @@ use Orchestra\Testbench\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -29,7 +29,7 @@ class TestCase extends BaseTestCase
         $app['db']->connection()
             ->getSchemaBuilder()
             ->create('test_models', function (Blueprint $table) {
-                $table->increments('id');
+                $table->bigIncrements('id');
                 $table->string('title');
                 $table->timestamp('published_at')->nullable();
                 $table->timestamps();

@@ -10,19 +10,23 @@ trait Draftable
     /**
      * Register a global scope to only retrieve
      * published models in query results.
+     *
+     * @return void
      */
     public static function bootDraftable()
     {
         static::addGlobalScope('published', function (Builder $query) {
-            $query->where('published_at', '<=', Carbon::now())
-                  ->whereNotNull('published_at');
+            $query
+                ->where('published_at', '<=', Carbon::now())
+                ->whereNotNull('published_at');
         });
     }
 
     /**
      * Scope to include draft models in query results.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
+     * @return void
      */
     public function scopeWithDrafts(Builder $query)
     {
@@ -32,17 +36,20 @@ trait Draftable
     /**
      * Scope to only retrieve draft models in query results.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      */
     public function scopeOnlyDrafts(Builder $query)
     {
-        $query->withDrafts()
-              ->where('published_at', '>', Carbon::now())
-              ->orWhereNull('published_at');
+        $query
+            ->withDrafts()
+            ->where('published_at', '>', Carbon::now())
+            ->orWhereNull('published_at');
     }
 
     /**
      * Publish the model.
+     *
+     * @return void
      */
     public function publish()
     {
@@ -52,7 +59,8 @@ trait Draftable
     /**
      * Publish the model on a given date.
      *
-     * @param \Carbon\Carbon $time
+     * @param Carbon $time
+     * @return void
      */
     public function schedule(Carbon $time)
     {
@@ -61,6 +69,8 @@ trait Draftable
 
     /**
      * Draft the model.
+     *
+     * @return void
      */
     public function draft()
     {
@@ -71,11 +81,13 @@ trait Draftable
      * Update the "published_at" column value.
      *
      * @param mixed $publishedAt
+     * @return bool
      */
     protected function setPublishedAt($publishedAt)
     {
         $this->published_at = $publishedAt;
-        $this->save();
+
+        return $this->save();
     }
 
     /**
