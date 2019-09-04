@@ -81,13 +81,13 @@ trait Draftable
      * Update the "published_at" column value.
      *
      * @param mixed $publishedAt
-     * @return bool
+     * @return void
      */
     protected function setPublishedAt($publishedAt)
     {
         $this->published_at = $publishedAt;
 
-        return $this->save();
+        $this->save();
     }
 
     /**
