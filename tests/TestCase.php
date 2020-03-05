@@ -2,16 +2,16 @@
 
 namespace Optix\Draftable\Tests;
 
-use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
-        $this->setUpDatabase($this->app);
+        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
+        $this->withFactories(__DIR__.'/database/factories');
     }
 
     protected function getEnvironmentSetUp($app)
@@ -20,19 +20,7 @@ class TestCase extends BaseTestCase
         $app['config']->set('database.connections.sqlite', [
             'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix' => ''
+            'prefix' => '',
         ]);
-    }
-
-    protected function setUpDatabase($app)
-    {
-        $app['db']->connection()
-            ->getSchemaBuilder()
-            ->create('test_models', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->string('title');
-                $table->timestamp('published_at')->nullable();
-                $table->timestamps();
-            });
     }
 }

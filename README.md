@@ -1,62 +1,69 @@
-# Laravel Draftable
+# Eloquent Draftable
 
-Draft and publish your eloquent models.
-
-```php
-// Get published posts.
-Post::all();
-
-// Get all posts.
-Post::withDrafts()->get();
-
-// Get drafted posts.
-Post::onlyDrafts()->get();
-```
+Add draftable functionality to your eloquent models.
 
 ## Installation
 
-You can install the package via composer:
-
 ```bash
-composer require optix/draftable
+composer require optix/eloquent-draftable
 ```
 
-## Usage
+## Setup
 
-Add the following column to your model's table:
+**Step 1**
+
+Add a nullable timestamp `published_at` column to your model's database table.
 
 ```php
 $table->timestamp('published_at')->nullable();
 ```
 
-Then use the `Optix\Draftable\Draftable` trait in your model.
+**Step 2**
+
+Include the `Optix\Draftable\Draftable` trait in your model.
 
 ```php
-<?php
-
-namespace App;
-
-use Optix\Draftable\Draftable;
-use Illuminate\Database\Eloquent\Model;
-
 class Post extends Model
 {
     use Draftable;
 }
 ```
 
-Posts are "published" when the `published_at` column is not null and in the past.
+## Usage
 
-Posts are "drafted" when the `published_at` column is null or in the future.
+**Todo:** More detailed description for each set of methods...
 
 ```php
-Post::create([
-    'published_at' => Carbon::now() // Published
-    // Carbon::tomorrow() - Drafted until tomorrow
-    // null - Indefinitely drafted
-]);
+// Only retrieve published records...
+$onlyPublished = Post::all();
+
+// Retrieve draft & published records...
+$withDrafts = Post::withDrafts()->get();
+
+// Only retrieve draft records...
+$onlyDrafts = Post::onlyDrafts()->get();  
+
+$post = Post::withDrafts()->first();
+
+// Determine if the model is draft...
+$post->isDraft();
+
+// Determine if the model is published...
+$post->isPublished();
+
+// Mark the model as published...
+$post->setPublished(true); // Does not persist
+$post->publish(); // or $post->publish(true);
+
+// Mark the model as draft...
+$post->setPublished(false); // Does not persist
+$post->draft(); // or $post->publish(false);
+
+// Schedule the model to be published...
+$post->setPublishedAt('+1 week'); // Does not persist
+$post->publishAt(Carbon::now()->addWeek());
 ```
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+This library is licensed under the [MIT license](LICENSE.md).

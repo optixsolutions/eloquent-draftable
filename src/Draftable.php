@@ -5,111 +5,86 @@ namespace Optix\Draftable;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * @method static Builder withDrafts
+ * @method static Builder onlyDrafts
+ */
 trait Draftable
 {
-    /**
-     * Register a global scope to only retrieve
-     * published models in query results.
-     *
-     * @return void
-     */
     public static function bootDraftable()
     {
-        static::addGlobalScope('published', function (Builder $query) {
+        self::addGlobalScope('published', function (Builder $query) {
             $query
-                ->where('published_at', '<=', Carbon::now())
-                ->whereNotNull('published_at');
+                ->whereNotNull('published_at')
+                ->where('published_at', '<=', Carbon::now());
         });
     }
 
-    /**
-     * Scope to include draft models in query results.
-     *
-     * @param Builder $query
-     * @return void
-     */
     public function scopeWithDrafts(Builder $query)
     {
         $query->withoutGlobalScope('published');
     }
 
-    /**
-     * Scope to only retrieve draft models in query results.
-     *
-     * @param Builder $query
-     */
     public function scopeOnlyDrafts(Builder $query)
     {
-        $query
-            ->withDrafts()
-            ->where('published_at', '>', Carbon::now())
-            ->orWhereNull('published_at');
+        $query->withDrafts()->where(function (Builder $query) {
+            $query
+                ->whereNull('published_at')
+                ->orWhere('published_at', '>', Carbon::now());
+        });
     }
 
-    /**
-     * Publish the model.
-     *
-     * @return void
-     */
-    public function publish()
-    {
-        $this->schedule(Carbon::now());
-    }
-
-    /**
-     * Publish the model on a given date.
-     *
-     * @param Carbon $time
-     * @return void
-     */
-    public function schedule(Carbon $time)
-    {
-        $this->setPublishedAt($time);
-    }
-
-    /**
-     * Draft the model.
-     *
-     * @return void
-     */
-    public function draft()
-    {
-        $this->setPublishedAt(null);
-    }
-
-    /**
-     * Update the "published_at" column value.
-     *
-     * @param mixed $publishedAt
-     * @return void
-     */
-    protected function setPublishedAt($publishedAt)
-    {
-        $this->published_at = $publishedAt;
-
-        $this->save();
-    }
-
-    /**
-     * Determine if the model is published.
-     *
-     * @return bool
-     */
     public function isPublished()
     {
-        return (
-            ! is_null($this->published_at)
-            && $this->published_at <= Carbon::now()
-        );
+        return ! is_null($this->published_at)
+            && $this->published_at <= Carbon::now();
     }
 
-    /**
-     * Determine if the model is draft.
-     *
-     * @return bool
-     */
     public function isDraft()
     {
         return ! $this->isPublished();
+    }
+
+    public function setPublishedAt($date)
+    {
+        if (! is_null($date)) {
+            $date = Carbon::parse($date);
+        }
+
+        $this->published_at = $date;
+
+        return $this;
+    }
+
+    public function setPublished(bool $published)
+    {
+        if (! $published) {
+            return $this->setPublishedAt(null);
+        }
+
+        if ($this->isDraft()) {
+            return $this->setPublishedAt(Carbon::now());
+        }
+
+        return $this;
+    }
+
+    public function publishAt($date)
+    {
+        $this->setPublishedAt($date)->save();
+
+        return $this;
+    }
+
+    public function publish(bool $publish = true)
+    {
+        $this->setPublished($publish)->save();
+
+        return $this;
+    }
+
+    public function draft()
+    {
+        return $this->publish(false);
     }
 }
