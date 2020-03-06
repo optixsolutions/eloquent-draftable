@@ -23,8 +23,8 @@ composer require optix/eloquent-draftable
     ```php
     class Post extends Model
     {
-         use Draftable;
-     }
+        use Draftable;
+    }
     ```
 
 ## Usage
@@ -32,8 +32,8 @@ composer require optix/eloquent-draftable
 **Query scopes**
 
 When the `Draftable` trait is included in a model, a global scope will be registered
-to automatically exclude draft records from query results. Because of this, the trait
-exposes two local scopes to allow these draft records to be queried.
+to automatically exclude draft records from query results. Therefore, in order to
+query these records, you must apply one of the local scopes outlined below.
 
 ```php
 // Only retrieve published records...
@@ -46,35 +46,52 @@ $withDrafts = Post::withDrafts()->get();
 $onlyDrafts = Post::onlyDrafts()->get();
 ```
 
-**Get the published status of model**
+**Publish a model**
 
-The trait exposes two methods for determining the published status of a model, both
-of which return a `bool`.
+
 
 ```php
-$post = Post::withDrafts()->first();
+// Publish without saving...
+$post->setPublished(true);
 
+// Publish and save...
+$post->publish(); // or $post->publish(true);
+```
+
+**Draft a model**
+
+```php
+// Draft without saving...
+$post->setPublished(false);
+
+// Draft and save...
+$post->draft(); // or $post->publish(false);
+```
+
+**Schedule a model to be published**
+
+```
+$publishDate = Carbon::now()->addWeek();
+// $publishDate = '2020-01-01 00:00:00';
+// $publishDate = '+1 week';
+
+// Schedule without saving...
+$post->setPublishedAt($publishDate);
+
+// Schedule and save...
+$post->publishAt($publishDate);
+```
+
+The methods outlined above both require a `$date` parameter of type `DateTimeInterface|string|null`.
+
+**Get the published status of a model**
+
+```php
 // Determine if the model is published...
 $post->isPublished();
 
 // Determine if the model is draft...
 $post->isDraft();
-```
-
-**WIP**
-
-```php
-// Mark the model as published...
-$post->setPublished(true); // Does not persist
-$post->publish(); // or $post->publish(true);
-
-// Mark the model as draft...
-$post->setPublished(false); // Does not persist
-$post->draft(); // or $post->publish(false);
-
-// Schedule the model to be published...
-$post->setPublishedAt('+1 week'); // Does not persist
-$post->publishAt(Carbon::now()->addWeek());
 ```
 
 ## License
