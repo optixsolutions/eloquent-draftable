@@ -49,6 +49,8 @@ $onlyDrafts = Post::onlyDrafts()->get();
 **Publish a model**
 
 ```php
+$post = Post::withDrafts()->first();
+
 // Publish without saving...
 $post->setPublished(true);
 

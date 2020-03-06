@@ -137,35 +137,130 @@ class DraftableTest extends TestCase
     }
 
     /** @test */
-    public function it_can_publish_or_draft_a_model_based_on_a_boolean_value()
+    public function it_can_mark_a_model_as_published()
     {
-        // Todo...
-    }
-
-    /** @test */
-    public function it_can_publish_a_model()
-    {
-        // Todo: Without persisting...
-
         /** @var TestModel $model */
         $model = factory(TestModel::class)->create();
 
-        $this->assertTrue($model->isDraft());
+        $this->assertFalse($model->isPublished());
 
         $model->publish();
 
         // The model should now be published...
         $this->assertTrue($model->isPublished());
 
-        // Ensure the change was persisted...
+        // Ensure the change was saved...
         $this->assertFalse($model->isDirty());
     }
 
     /** @test */
-    public function it_can_draft_a_model()
+    public function it_can_mark_a_model_as_published_without_saving()
     {
-        // Todo: Without persisting...
+        $model = new TestModel();
 
+        $this->assertFalse($model->isPublished());
+
+        $model->setPublished(true);
+
+        // The model should now be published...
+        $this->assertTrue($model->isPublished());
+
+        // Ensure the change was not saved...
+        $this->assertTrue($model->isDirty());
+    }
+
+    /** @test */
+    public function it_can_mark_a_model_as_draft()
+    {
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)
+            ->state('published')
+            ->create();
+
+        $this->assertFalse($model->isDraft());
+
+        $model->draft();
+
+        // The model should now be draft...
+        $this->assertTrue($model->isDraft());
+
+        // Ensure the change was saved...
+        $this->assertFalse($model->isDirty());
+    }
+
+    public function it_can_mark_a_model_as_draft_without_saving()
+    {
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)
+            ->state('published')
+            ->make();
+
+        $this->assertFalse($model->isDraft());
+
+        $model->setPublished(false);
+
+        // The model should now be draft...
+        $this->assertTrue($model->isDraft());
+
+        // Ensure the change was not saved...
+        $this->assertFalse($model->isDirty());
+    }
+
+    /** @test */
+    public function it_can_publish_or_draft_a_model_based_on_a_boolean_value()
+    {
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)->make();
+
+        $this->assertTrue($model->isDraft());
+
+        // Publish without saving...
+        $model->setPublished(true);
+
+        $this->assertTrue($model->isPublished());
+
+        // Draft without saving...
+        $model->setPublished(false);
+
+        $this->assertTrue($model->isDraft());
+
+        // Publish and save...
+        $model->publish(true);
+
+        $this->assertTrue($model->isPublished());
+
+        // Draft and save...
+        $model->publish(false);
+
+        $this->assertTrue($model->isDraft());
+    }
+
+    /** @test */
+    public function it_will_not_update_the_published_at_timestamp_when_publishing_an_already_published_model()
+    {
+        $publishedAt = Carbon::now()->startOfDay()->subDay();
+
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)->make([
+            'published_at' => $publishedAt,
+        ]);
+
+        $this->assertTrue($model->isPublished());
+
+        // Publish without saving...
+        $model->setPublished(true);
+
+        $this->assertTrue($publishedAt->equalTo($model->published_at));
+
+        // Publish and save...
+        $model->publish(true);
+
+        $this->assertTrue($publishedAt->equalTo($model->published_at));
+    }
+
+    /** @test */
+    public function it_can_schedule_a_model_to_be_published()
+    {
         /** @var TestModel $model */
         $model = factory(TestModel::class)
             ->state('published')
@@ -173,46 +268,47 @@ class DraftableTest extends TestCase
 
         $this->assertTrue($model->isPublished());
 
-        $model->draft();
-
-        // The model should now be draft...
-        $this->assertTrue($model->isDraft());
-
-        // Ensure the change was persisted...
-        $this->assertFalse($model->isDirty());
-    }
-
-    /** @test */
-    public function it_can_schedule_a_model_to_be_published_at_a_given_date()
-    {
-        // Todo: Without persisting...
-
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)->state('published')->create();
-
-        $this->assertTrue($model->isPublished());
-
-        $publishDate = Carbon::now()->addDay();
+        $publishDate = Carbon::now()->startOfDay()->addWeek();
 
         $model->publishAt($publishDate);
 
-        $this->assertTrue($model->isDraft());
+        $this->assertFalse($model->isPublished());
 
-        // The model should be set to publish at the given date...
-        $publishDate->equalTo($model->published_at);
+        // The model should be scheduled to publish at the given date...
+        $this->assertTrue($publishDate->equalTo($model->published_at));
 
-        // Ensure the change was persisted...
+        // Ensure the change was saved...
         $this->assertFalse($model->isDirty());
 
-        // Spoof now to be the date the model is scheduled for...
         Carbon::setTestNow($publishDate);
 
         $this->assertTrue($model->isPublished());
     }
 
     /** @test */
-    public function it_accepts_the_schedule_date_in_multiple_formats()
+    public function it_can_schedule_a_model_to_be_published_without_saving()
     {
-        // Todo...
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)
+            ->state('published')
+            ->create();
+
+        $this->assertTrue($model->isPublished());
+
+        $publishDate = Carbon::now()->startOfDay()->addWeek();
+
+        $model->publishAt($publishDate);
+
+        $this->assertFalse($model->isPublished());
+
+        // The model should be scheduled to publish at the given date...
+        $this->assertTrue($publishDate->equalTo($model->published_at));
+
+        // Ensure the change was not saved...
+        $this->assertFalse($model->isDirty());
+
+        Carbon::setTestNow($publishDate);
+
+        $this->assertTrue($model->isPublished());
     }
 }
