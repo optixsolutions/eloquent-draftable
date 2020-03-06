@@ -31,9 +31,9 @@ composer require optix/eloquent-draftable
 
 **Query scopes**
 
-When the `Draftable` trait is included in a model, a global scope will be registered
-to automatically exclude draft records from query results. Therefore, in order to
-query these records, you must apply one of the local scopes outlined below.
+When the `Draftable` trait is included in a model, a global scope will be registered to automatically exclude
+draft records from query results. Therefore, in order to query draft records you must apply one of the local
+scopes outlined below.
 
 ```php
 // Only retrieve published records...
@@ -48,8 +48,6 @@ $onlyDrafts = Post::onlyDrafts()->get();
 
 **Publish a model**
 
-
-
 ```php
 // Publish without saving...
 $post->setPublished(true);
@@ -57,6 +55,8 @@ $post->setPublished(true);
 // Publish and save...
 $post->publish(); // or $post->publish(true);
 ```
+
+When you attempt to publish a model that's already been published, the `published_at` timestamp will not be updated.
 
 **Draft a model**
 
@@ -70,7 +70,7 @@ $post->draft(); // or $post->publish(false);
 
 **Schedule a model to be published**
 
-```
+```php
 $publishDate = Carbon::now()->addWeek();
 // $publishDate = '2020-01-01 00:00:00';
 // $publishDate = '+1 week';
