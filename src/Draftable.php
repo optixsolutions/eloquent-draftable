@@ -3,6 +3,7 @@
 namespace Optix\Draftable;
 
 use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -11,6 +12,11 @@ use Illuminate\Database\Eloquent\Builder;
  */
 trait Draftable
 {
+    /**
+     * Exclude draft records from query results by default.
+     *
+     * @return void
+     */
     public static function bootDraftable()
     {
         self::addGlobalScope('published', function (Builder $query) {
@@ -20,11 +26,23 @@ trait Draftable
         });
     }
 
+    /**
+     * Include draft records in query results.
+     *
+     * @param Builder $query
+     * @return void
+     */
     public function scopeWithDrafts(Builder $query)
     {
         $query->withoutGlobalScope('published');
     }
 
+    /**
+     * Exclude published records from query results.
+     *
+     * @param Builder $query
+     * @return void
+     */
     public function scopeOnlyDrafts(Builder $query)
     {
         $query->withDrafts()->where(function (Builder $query) {
@@ -34,17 +52,33 @@ trait Draftable
         });
     }
 
+    /**
+     * Determine if the model is published.
+     *
+     * @return bool
+     */
     public function isPublished()
     {
         return ! is_null($this->published_at)
             && $this->published_at <= Carbon::now();
     }
 
+    /**
+     * Determine if the model is draft.
+     *
+     * @return bool
+     */
     public function isDraft()
     {
         return ! $this->isPublished();
     }
 
+    /**
+     * Set the value of the model's published at column.
+     *
+     * @param DateTimeInterface|string|null $date
+     * @return $this
+     */
     public function setPublishedAt($date)
     {
         if (! is_null($date)) {
@@ -56,6 +90,12 @@ trait Draftable
         return $this;
     }
 
+    /**
+     * Set the value of the model's published status.
+     *
+     * @param bool $published
+     * @return $this
+     */
     public function setPublished(bool $published)
     {
         if (! $published) {
@@ -69,6 +109,12 @@ trait Draftable
         return $this;
     }
 
+    /**
+     * Schedule the model to be published.
+     *
+     * @param DateTimeInterface|string|null $date
+     * @return $this
+     */
     public function publishAt($date)
     {
         $this->setPublishedAt($date)->save();
@@ -76,6 +122,12 @@ trait Draftable
         return $this;
     }
 
+    /**
+     * Mark the model as published.
+     *
+     * @param bool $publish
+     * @return $this
+     */
     public function publish(bool $publish = true)
     {
         $this->setPublished($publish)->save();
@@ -83,6 +135,11 @@ trait Draftable
         return $this;
     }
 
+    /**
+     * Mark the model as draft.
+     *
+     * @return $this
+     */
     public function draft()
     {
         return $this->publish(false);
