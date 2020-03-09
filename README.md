@@ -1,5 +1,9 @@
 # Eloquent Draftable
 
+![Packagist Version](https://img.shields.io/packagist/v/optix/eloquent-draftable)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/optixsolutions/eloquent-draftable/Run%20tests)
+![StyleCI](https://styleci.io/repos/133484703/shield)
+
 Add draftable functionality to your eloquent models.
 
 ## Installation
