@@ -311,4 +311,81 @@ class DraftableTest extends TestCase
 
         $this->assertTrue($model->isPublished());
     }
+
+    /**
+     * @test
+     *
+     * @param Carbon $now
+     * @param mixed $input
+     * @param Carbon $expected
+     *
+     * @dataProvider acceptedDates
+     */
+    public function it_can_accept_the_publish_date_in_multiple_formats($now, $input, $expected)
+    {
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)->create();
+
+        Carbon::setTestNow($now);
+
+        $model->setPublishedAt($input);
+
+        $this->assertEquals(
+            $model->published_at->toDateTimeString(),
+            $expected->toDateTimeString()
+        );
+
+        // Ensure the change was not saved...
+        $this->assertTrue($model->isDirty());
+
+        $model->published_at = null;
+
+        $model->publishAt($input);
+
+        $this->assertEquals(
+            $model->published_at->toDateTimeString(),
+            $expected->toDateTimeString()
+        );
+
+        // Ensure the change was saved...
+        $this->assertFalse($model->isDirty());
+    }
+
+    public function acceptedDates()
+    {
+        $now = Carbon::now()->toImmutable();
+
+        return [
+            [$now, $now, $now],
+            [$now, $now->toDateTime(), $now],
+            [$now, $now->addDay()->toDateTimeString(), $now->addDay()],
+            [$now, 'now', $now],
+            [$now, '+1 week', $now->addWeek()],
+        ];
+    }
+
+    /** @test */
+    public function it_can_accept_a_null_publish_date_to_indefinitely_draft_a_model()
+    {
+        /** @var TestModel $model */
+        $model = factory(TestModel::class)
+            ->state('published')
+            ->create();
+
+        $model->setPublishedAt(null);
+
+        $this->assertNull($model->published_at);
+
+        // Ensure the change was not saved...
+        $this->assertTrue($model->isDirty());
+
+        $model->published_at = Carbon::now();
+
+        $model->publishAt(null);
+
+        $this->assertNull($model->published_at);
+
+        // Ensure the change was saved...
+        $this->assertFalse($model->isDirty());
+    }
 }
