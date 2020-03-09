@@ -250,7 +250,10 @@ class DraftableTest extends TestCase
         // Publish without saving...
         $model->setPublished(true);
 
-        $this->assertTrue($publishedAt->equalTo($model->published_at));
+        $this->assertEquals(
+            $publishedAt->toDateTimeString(),
+            $model->published_at->toDateTimeString()
+        );
 
         // Publish and save...
         $model->publish(true);
@@ -274,8 +277,10 @@ class DraftableTest extends TestCase
 
         $this->assertFalse($model->isPublished());
 
-        // The model should be scheduled to publish at the given date...
-        $this->assertTrue($publishDate->equalTo($model->published_at));
+        $this->assertEquals(
+            $publishDate->toDateTimeString(),
+            $model->published_at->toDateTimeString()
+        );
 
         // Ensure the change was saved...
         $this->assertFalse($model->isDirty());
@@ -301,8 +306,10 @@ class DraftableTest extends TestCase
 
         $this->assertFalse($model->isPublished());
 
-        // The model should be scheduled to publish at the given date...
-        $this->assertTrue($publishDate->equalTo($model->published_at));
+        $this->assertEquals(
+            $publishDate->toDateTimeString(),
+            $model->published_at->toDateTimeString()
+        );
 
         // Ensure the change was not saved...
         $this->assertFalse($model->isDirty());
@@ -353,14 +360,14 @@ class DraftableTest extends TestCase
 
     public function acceptedDates()
     {
-        $now = Carbon::now()->toImmutable();
+        $now = Carbon::now();
 
         return [
             [$now, $now, $now],
-            [$now, $now->toDateTime(), $now],
-            [$now, $now->addDay()->toDateTimeString(), $now->addDay()],
+            [$now, $now->clone()->toDateTime(), $now],
+            [$now, $now->clone()->addDay()->toDateTimeString(), $now->clone()->addDay()],
             [$now, 'now', $now],
-            [$now, '+1 week', $now->addWeek()],
+            [$now, '+1 week', $now->clone()->addWeek()],
         ];
     }
 
