@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factory;
 use Optix\Draftable\Tests\TestModel;
 
 /** @var Factory $factory */
-
 $factory->define(TestModel::class, function (Faker $faker) {
     return [
         'name' => $faker->word,
