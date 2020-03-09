@@ -258,7 +258,10 @@ class DraftableTest extends TestCase
         // Publish and save...
         $model->publish(true);
 
-        $this->assertTrue($publishedAt->equalTo($model->published_at));
+        $this->assertEquals(
+            $publishedAt->toDateTimeString(),
+            $model->published_at->toDateTimeString()
+        );
     }
 
     /** @test */
@@ -338,20 +341,20 @@ class DraftableTest extends TestCase
         $model->setPublishedAt($input);
 
         $this->assertEquals(
-            $model->published_at->toDateTimeString(),
-            $expected->toDateTimeString()
+            $expected->toDateTimeString(),
+            $model->published_at->toDateTimeString()
         );
 
         // Ensure the change was not saved...
         $this->assertTrue($model->isDirty());
 
-        $model->published_at = null;
+        $model->setPublished(false);
 
         $model->publishAt($input);
 
         $this->assertEquals(
-            $model->published_at->toDateTimeString(),
-            $expected->toDateTimeString()
+            $expected->toDateTimeString(),
+            $model->published_at->toDateTimeString()
         );
 
         // Ensure the change was saved...
@@ -381,16 +384,16 @@ class DraftableTest extends TestCase
 
         $model->setPublishedAt(null);
 
-        $this->assertNull($model->published_at);
+        $this->assertTrue($model->isDraft());
 
         // Ensure the change was not saved...
         $this->assertTrue($model->isDirty());
 
-        $model->published_at = Carbon::now();
+        $model->setPublished(true);
 
         $model->publishAt(null);
 
-        $this->assertNull($model->published_at);
+        $this->assertTrue($model->isDraft());
 
         // Ensure the change was saved...
         $this->assertFalse($model->isDirty());
