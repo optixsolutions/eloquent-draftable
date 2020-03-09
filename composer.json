@@ -1,5 +1,5 @@
 {
-    "name": "optix/laravel-draftable",
+    "name": "optix/eloquent-draftable",
     "description": "Add draftable functionality to your eloquent models.",
     "license": "MIT",
     "authors": [
