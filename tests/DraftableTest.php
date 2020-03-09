@@ -3,6 +3,7 @@
 namespace Optix\Draftable\Tests;
 
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class DraftableTest extends TestCase
@@ -367,10 +368,9 @@ class DraftableTest extends TestCase
 
         return [
             [$now, $now, $now],
-            [$now, $now->clone()->toDateTime(), $now],
-            [$now, $now->clone()->addDay()->toDateTimeString(), $now->clone()->addDay()],
+            [$now, $now->copy()->addDay()->toDateTimeString(), $now->copy()->addDay()],
             [$now, 'now', $now],
-            [$now, '+1 week', $now->clone()->addWeek()],
+            [$now, '+1 week', $now->copy()->addWeek()],
         ];
     }
 
