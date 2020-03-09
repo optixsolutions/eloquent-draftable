@@ -3,7 +3,6 @@
 namespace Optix\Draftable\Tests;
 
 use Carbon\Carbon;
-use DateTime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class DraftableTest extends TestCase
