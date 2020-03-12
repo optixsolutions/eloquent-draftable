@@ -96,7 +96,7 @@ trait Draftable
      * @param bool $published
      * @return $this
      */
-    public function setPublished(bool $published)
+    public function setPublished($published)
     {
         if (! $published) {
             return $this->setPublishedAt(null);
@@ -128,7 +128,7 @@ trait Draftable
      * @param bool $publish
      * @return $this
      */
-    public function publish(bool $publish = true)
+    public function publish($publish = true)
     {
         $this->setPublished($publish)->save();
 
