@@ -2,6 +2,7 @@
 
 namespace Optix\Draftable\Tests;
 
+use DateTimeInterface;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
@@ -10,8 +11,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        $this->withFactories(__DIR__.'/database/factories');
+        $this->loadMigrationsFrom(__DIR__.'/migrations');
     }
 
     protected function getEnvironmentSetUp($app)
@@ -22,5 +22,30 @@ class TestCase extends BaseTestCase
             'database' => ':memory:',
             'prefix' => '',
         ]);
+    }
+
+    /**
+     * @param DateTimeInterface|string|null $publishedAt
+     * @return TestModel
+     */
+    protected function newTestModel($publishedAt = null)
+    {
+        return new TestModel([
+            'published_at' => $publishedAt,
+        ]);
+    }
+
+    /**
+     * @param DateTimeInterface|string|null $publishedAt
+     * @return TestModel
+     */
+    protected function createTestModel($publishedAt = null)
+    {
+        return tap(
+            $this->newTestModel($publishedAt),
+            function (TestModel $model) {
+                $model->save();
+            }
+        );
     }
 }
