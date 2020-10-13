@@ -12,22 +12,17 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_determine_if_a_model_is_published()
     {
-        /** @var TestModel $draftModel */
-        $draftModel = factory(TestModel::class)->make();
+        $draftModel = $this->newTestModel();
 
         $this->assertFalse($draftModel->isPublished());
 
-        /** @var TestModel $publishedModel */
-        $publishedModel = factory(TestModel::class)
-            ->state('published')
-            ->make();
+        $publishedModel = $this->newTestModel(Carbon::now());
 
         $this->assertTrue($publishedModel->isPublished());
 
-        /** @var TestModel $scheduledModel */
-        $scheduledModel = factory(TestModel::class)->make([
-            'published_at' => $scheduledFor = Carbon::now()->addDay(),
-        ]);
+        $scheduledModel = $this->newTestModel(
+            $scheduledFor = Carbon::now()->addDay()
+        );
 
         $this->assertFalse($scheduledModel->isPublished());
 
@@ -40,22 +35,17 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_determine_if_a_model_is_draft()
     {
-        /** @var TestModel $draftModel */
-        $draftModel = factory(TestModel::class)->make();
+        $draftModel = $this->newTestModel();
 
         $this->assertTrue($draftModel->isDraft());
 
-        /** @var TestModel $publishedModel */
-        $publishedModel = factory(TestModel::class)
-            ->state('published')
-            ->make();
+        $publishedModel = $this->newTestModel(Carbon::now());
 
         $this->assertFalse($publishedModel->isDraft());
 
-        /** @var TestModel $scheduledModel */
-        $scheduledModel = factory(TestModel::class)->make([
-            'published_at' => $scheduledFor = Carbon::now()->addDay(),
-        ]);
+        $scheduledModel = $this->newTestModel(
+            $scheduledFor = Carbon::now()->addDay()
+        );
 
         $this->assertTrue($scheduledModel->isDraft());
 
@@ -69,13 +59,12 @@ class DraftableTest extends TestCase
     public function it_will_exclude_draft_records_from_query_results_by_default()
     {
         // Create two draft models...
-        factory(TestModel::class)->create();
-        factory(TestModel::class)->state('scheduled')->create();
+        $this->createTestModel();
+        $this->createTestModel(Carbon::now()->addDay());
 
         // Create two published models...
-        factory(TestModel::class, 2)
-            ->state('published')
-            ->create();
+        $this->createTestModel(Carbon::now()->subMinute());
+        $this->createTestModel(Carbon::now());
 
         $models = TestModel::all();
 
@@ -90,13 +79,12 @@ class DraftableTest extends TestCase
     public function it_can_include_draft_records_in_query_results()
     {
         // Create two draft models...
-        factory(TestModel::class)->create();
-        factory(TestModel::class)->state('scheduled')->create();
+        $this->createTestModel();
+        $this->createTestModel(Carbon::now()->addDay());
 
         // Create two published models...
-        factory(TestModel::class, 2)
-            ->state('published')
-            ->create();
+        $this->createTestModel(Carbon::now()->subMinute());
+        $this->createTestModel(Carbon::now());
 
         $models = TestModel::withDrafts()->get();
 
@@ -119,13 +107,12 @@ class DraftableTest extends TestCase
     public function it_can_exclude_published_records_from_query_results()
     {
         // Create two draft models...
-        factory(TestModel::class)->create();
-        factory(TestModel::class)->state('scheduled')->create();
+        $this->createTestModel();
+        $this->createTestModel(Carbon::now()->addDay());
 
         // Create two published models...
-        factory(TestModel::class, 2)
-            ->state('published')
-            ->create();
+        $this->createTestModel(Carbon::now()->subMinute());
+        $this->createTestModel(Carbon::now());
 
         $models = TestModel::onlyDrafts()->get();
 
@@ -139,8 +126,7 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_mark_a_model_as_published()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)->create();
+        $model = $this->createTestModel();
 
         $this->assertFalse($model->isPublished());
 
@@ -150,13 +136,13 @@ class DraftableTest extends TestCase
         $this->assertTrue($model->isPublished());
 
         // Ensure the change was saved...
-        $this->assertFalse($model->isDirty());
+        $this->assertTrue($model->isClean());
     }
 
     /** @test */
     public function it_can_mark_a_model_as_published_without_saving()
     {
-        $model = new TestModel();
+        $model = $this->newTestModel();
 
         $this->assertFalse($model->isPublished());
 
@@ -172,10 +158,7 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_mark_a_model_as_draft()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)
-            ->state('published')
-            ->create();
+        $model = $this->createTestModel(Carbon::now());
 
         $this->assertFalse($model->isDraft());
 
@@ -185,15 +168,13 @@ class DraftableTest extends TestCase
         $this->assertTrue($model->isDraft());
 
         // Ensure the change was saved...
-        $this->assertFalse($model->isDirty());
+        $this->assertTrue($model->isClean());
     }
 
+    /** @test */
     public function it_can_mark_a_model_as_draft_without_saving()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)
-            ->state('published')
-            ->make();
+        $model = $this->newTestModel(Carbon::now());
 
         $this->assertFalse($model->isDraft());
 
@@ -203,14 +184,13 @@ class DraftableTest extends TestCase
         $this->assertTrue($model->isDraft());
 
         // Ensure the change was not saved...
-        $this->assertFalse($model->isDirty());
+        $this->assertTrue($model->isDirty());
     }
 
     /** @test */
     public function it_can_publish_or_draft_a_model_based_on_a_boolean_value()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)->make();
+        $model = $this->newTestModel();
 
         $this->assertTrue($model->isDraft());
 
@@ -240,10 +220,7 @@ class DraftableTest extends TestCase
     {
         $publishedAt = Carbon::now()->startOfDay()->subDay();
 
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)->make([
-            'published_at' => $publishedAt,
-        ]);
+        $model = $this->newTestModel($publishedAt);
 
         $this->assertTrue($model->isPublished());
 
@@ -267,10 +244,7 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_schedule_a_model_to_be_published()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)
-            ->state('published')
-            ->create();
+        $model = $this->createTestModel(Carbon::now());
 
         $this->assertTrue($model->isPublished());
 
@@ -286,7 +260,7 @@ class DraftableTest extends TestCase
         );
 
         // Ensure the change was saved...
-        $this->assertFalse($model->isDirty());
+        $this->assertTrue($model->isClean());
 
         Carbon::setTestNow($publishDate);
 
@@ -296,16 +270,13 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_schedule_a_model_to_be_published_without_saving()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)
-            ->state('published')
-            ->create();
+        $model = $this->createTestModel(Carbon::now());
 
         $this->assertTrue($model->isPublished());
 
         $publishDate = Carbon::now()->startOfDay()->addWeek();
 
-        $model->publishAt($publishDate);
+        $model->setPublishedAt($publishDate);
 
         $this->assertFalse($model->isPublished());
 
@@ -315,7 +286,7 @@ class DraftableTest extends TestCase
         );
 
         // Ensure the change was not saved...
-        $this->assertFalse($model->isDirty());
+        $this->assertTrue($model->isDirty());
 
         Carbon::setTestNow($publishDate);
 
@@ -333,8 +304,7 @@ class DraftableTest extends TestCase
      */
     public function it_can_accept_the_publish_date_in_multiple_formats($now, $input, $expected)
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)->create();
+        $model = $this->createTestModel();
 
         Carbon::setTestNow($now);
 
@@ -376,10 +346,7 @@ class DraftableTest extends TestCase
     /** @test */
     public function it_can_accept_a_null_publish_date_to_indefinitely_draft_a_model()
     {
-        /** @var TestModel $model */
-        $model = factory(TestModel::class)
-            ->state('published')
-            ->create();
+        $model = $this->createTestModel(Carbon::now());
 
         $model->setPublishedAt(null);
 
@@ -395,6 +362,6 @@ class DraftableTest extends TestCase
         $this->assertTrue($model->isDraft());
 
         // Ensure the change was saved...
-        $this->assertFalse($model->isDirty());
+        $this->assertTrue($model->isClean());
     }
 }
